@@ -4,15 +4,7 @@
  * and/or small pure JS functions that can be used on both client and server
  */
 
-/**
- * Example response type for /api/demo
- */
-export interface DemoResponse {
-  message: string;
-}
-
-// --- NEW TYPES FOR FAIRWATER ---
-
+// --- EXISTING TYPES ---
 export interface Zone {
   id: string;
   name: string;
@@ -28,8 +20,8 @@ export interface Zone {
 export interface Alert {
   id: string;
   message: string;
-  type: "warning" | "info";
-  icon: "AlertCircle" | "MapPin" | "Wrench" | "BarChart";
+  type: "info" | "warning";
+  icon: string;
   badge: string;
   badgeColor: string;
 }
@@ -39,13 +31,19 @@ export interface ZoneStatusResponse {
   alerts: Alert[];
 }
 
-// --- NEW OPTIMIZATION TYPES ---
-
 export interface OptimizationSchedule {
-  zone: string;
+  zoneId: string;
+  zoneName: string;
   area: string;
-  minutes: number;
-  highlighted: boolean;
+  time: number;
+  status: "Balanced" | "Boost";
 }
 
-export type OptimizationResponse = OptimizationSchedule[];
+// --- NEW TYPES ---
+export interface HistoryDataPoint {
+  created_at: string; // ISO timestamp
+  pressure: number;
+  flow: number;
+}
+
+export type ZoneHistoryResponse = HistoryDataPoint[];

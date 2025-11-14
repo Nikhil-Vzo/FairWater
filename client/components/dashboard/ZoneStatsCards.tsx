@@ -1,71 +1,75 @@
-import { Droplets } from "lucide-react";
-import { Zone } from "@shared/api"; // Import our shared type
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Zone } from "@shared/api";
+import { BarChart, Droplet, Gauge } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ZoneStatsCardsProps {
-  zones: Zone[]; // Accept zones as a prop
+  zones: Zone[];
+  onZoneSelect: (zoneId: string) => void;
+  selectedZoneId: string | null;
 }
 
-export const ZoneStatsCards = ({ zones }: ZoneStatsCardsProps) => {
+export function ZoneStatsCards({
+  zones,
+  onZoneSelect,
+  selectedZoneId,
+}: ZoneStatsCardsProps) {
   return (
-    <div className="h-80 overflow-y-auto">
-      <div className="space-y-2 pr-2">
-        {zones.map((stat) => {
-          // Determine status based on pressure
-          let statusBg = "bg-green-500";
-          let statusColor = "bg-green-100 text-green-800";
-          if (stat.pressure < 1.8) {
-            statusBg = "bg-red-500";
-            statusColor = "bg-red-100 text-red-800";
-          } else if (stat.pressure < 2.4) {
-            statusBg = "bg-orange-500";
-            statusColor = "bg-orange-100 text-orange-800";
-          } else if (stat.pressure < 2.8) {
-            statusBg = "bg-yellow-400";
-            statusColor = "bg-yellow-100 text-yellow-800";
-          }
-
-          return (
-            <div
-              key={stat.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 flex items-center justify-between hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+    <Card>
+      <CardHeader>
+        <CardTitle>Zone Status</CardTitle>
+        <CardDescription>Live metrics from all 10 zones</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-64 pr-4">
+          <div className="grid grid-cols-1 gap-4">
+            {zones.map((zone) => (
+              <div
+                key={zone.id}
+                // --- Add click handler and conditional styling ---
+                onClick={() => onZoneSelect(zone.id)}
+                className={cn(
+                  "flex items-center gap-4 rounded-lg border p-3.5 transition-all hover:bg-accent",
+                  selectedZoneId === zone.id
+                    ? "border-primary bg-accent"
+                    : "border-transparent",
+                  "cursor-pointer" // Make it look clickable
+                )}
+              >
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
-                  style={{ backgroundColor: stat.color }}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
+                  style={{ backgroundColor: zone.color }}
                 >
-                  {stat.zone}
+                  <BarChart className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">
-                    {stat.area}
-                  </p>
-                  <div className="flex gap-4 text-xs text-gray-600 mt-0.5">
-                    <span>
-                      P:{" "}
-                      <span className="font-medium text-gray-900">
-                        {stat.pressure}
-                      </span>
-                    </span>
-                    <span>
-                      F:{" "}
-                      <span className="font-medium text-gray-900">
-                        {stat.flow}
-                      </span>
-                    </span>
+                <div className="grid flex-1 gap-1">
+                  <div className="font-semibold">{zone.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {zone.area}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center justify-end gap-1 text-sm font-semibold">
+                    <Gauge className="h-3.5 w-3.5" />
+                    {zone.pressure.toFixed(1)} bar
+                  </div>
+                  <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                    <Droplet className="h-3 w-3" />
+                    {zone.flow} L/min
                   </div>
                 </div>
               </div>
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0`}
-                style={{ backgroundColor: stat.color }}
-              >
-                <Droplets className="w-4 h-4 text-white" />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
-};
+}

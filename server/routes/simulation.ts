@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { Zone, Alert, ZoneStatusResponse } from "@shared/api";
+import { db } from "../db"; // Import the Supabase client
 
 // Base data, moved from the frontend components
 const ZONES: Zone[] = [
@@ -144,6 +145,25 @@ const fluctuate = (value: number, percent: number) => {
   return parseFloat((value - amount / 2 + Math.random() * amount).toFixed(1));
 };
 
+// --- NEW: Function to log data to Supabase ---
+const logZoneData = async (zones: Zone[]) => {
+  const records = zones.map((zone) => ({
+    zone_id: zone.id,
+    pressure: zone.pressure,
+    flow: zone.flow,
+    // created_at is set by default in Supabase
+  }));
+
+  try {
+    const { error } = await db.from("zone_history").insert(records);
+    if (error) {
+      console.error("Supabase insert error:", error.message);
+    }
+  } catch (error) {
+    console.error("Error logging data to Supabase:", error);
+  }
+};
+
 // The simulation function
 const simulateData = () => {
   const newAlerts: Alert[] = [...BASE_ALERTS];
@@ -185,15 +205,26 @@ const simulateData = () => {
   });
 
   currentAlerts = newAlerts;
+
+  // --- NEW: Log the new data to Supabase ---
+  // We don't wait for this to finish (no await)
+  // so it doesn't block the simulation loop.
+  logZoneData(currentZones);
 };
 
 // --- Public API ---
 
+let simulationInterval: NodeJS.Timeout | null = null;
+
 // Start the simulation timer
 export const startSimulation = () => {
+  if (simulationInterval) {
+    return; // Already started
+  }
   console.log("Starting real-time water data simulation...");
-  // Update data every 5 seconds
-  setInterval(simulateData, 5000);
+  // Run once immediately, then set interval
+  simulateData();
+  simulationInterval = setInterval(simulateData, 5000);
 };
 
 // The API handler for GET /api/zonestatus
@@ -205,8 +236,7 @@ export const handleGetZoneStatus: RequestHandler = (req, res) => {
   res.status(200).json(response);
 };
 
-// --- This is the function that was missing/had a typo ---
-// This lets other routes read the current simulation state
+// --- This lets other routes read the current simulation state ---
 export const getSimulationState = () => {
   return { zones: currentZones, alerts: currentAlerts };
 };

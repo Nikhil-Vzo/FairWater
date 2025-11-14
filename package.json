@@ -21,6 +21,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "leaflet": "1.9.4",
