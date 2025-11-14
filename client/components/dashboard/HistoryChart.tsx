@@ -51,15 +51,16 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
   });
 
   // Format data for the chart
-  const chartData = data?.map((item) => ({
-    ...item,
-    // Format timestamp to a readable time
-    time: new Date(item.created_at).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }),
-  }));
+  const chartData =
+    data?.map((item) => ({
+      ...item,
+      // Format timestamp to a readable time
+      time: new Date(item.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+    })) ?? []; // Default to empty array
 
   const chartConfig = {
     pressure: {
@@ -84,31 +85,35 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
       </CardHeader>
       <CardContent>
         <div className="h-64 w-full">
-          {/* Loading Skeleton */}
-          {isLoading && <Skeleton className="h-full w-full" />}
-
-          {/* Error Message */}
-          {isError && !isLoading && (
+          {/* KEY CHANGE:
+            We render *either* the states (Loading, Error, Empty) OR
+            the chart container. This prevents the chart from trying to
+            render, unmounting, and re-rendering when the states change.
+          */}
+          {isLoading ? (
+            <div className="flex h-full w-full items-center justify-center">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : isError ? (
             <div className="flex h-full w-full items-center justify-center text-destructive">
               Error loading chart data.
             </div>
-          )}
-
-          {/* Empty State */}
-          {!selectedZone && !isLoading && (
+          ) : !selectedZone ? (
             <div className="flex h-full w-full items-center justify-center text-muted-foreground">
               No zone selected.
             </div>
-          )}
-
-          {/* Chart */}
-          {selectedZone && !isLoading && !isError && chartData && (
+          ) : (
+            /*
+              The chart container is *only* rendered when we have a zone
+              and are not loading or in error.
+              The `data` prop on LineChart will be an empty array initially
+              and then update with data, but the chart components themselves
+              will not unmount.
+            */
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="time" fontSize={12} tickLine={false} />
-
-                {/* Left Y-Axis (Pressure) */}
                 <YAxis
                   yAxisId="left"
                   dataKey="pressure"
@@ -117,8 +122,6 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
                   tickLine={false}
                   domain={["dataMin - 0.5", "dataMax + 0.5"]}
                 />
-
-                {/* Right Y-Axis (Flow) */}
                 <YAxis
                   yAxisId="right"
                   orientation="right"
@@ -128,7 +131,6 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
                   tickLine={false}
                   domain={["dataMin - 50", "dataMax + 50"]}
                 />
-
                 <Tooltip
                   content={
                     <ChartTooltip
@@ -141,7 +143,6 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
                   }
                 />
                 <Legend />
-
                 <Line
                   yAxisId="left"
                   type="monotone"

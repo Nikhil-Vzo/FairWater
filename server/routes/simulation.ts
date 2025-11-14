@@ -242,3 +242,17 @@ export const handleGetZoneStatus: RequestHandler = (req, res) => {
 export const getSimulationState = () => {
   return { zones: currentZones, alerts: currentAlerts };
 };
+
+// --- NEW FUNCTION TO ADD CITIZEN ALERTS ---
+export const addAlert = (issueType: string, zone: Zone, description: string) => {
+  const newAlert: Alert = {
+    id: `citizen-${Date.now()}`, // Simple unique ID
+    message: `${issueType} reported in ${zone.name}: "${description}"`,
+    type: "warning", // All citizen reports are warnings
+    icon: "MapPin", // Use MapPin for citizen reports
+    badge: "📍",
+    badgeColor: "bg-yellow-100 text-yellow-800",
+  };
+  // Add to the *beginning* of the array
+  currentAlerts.unshift(newAlert);
+};

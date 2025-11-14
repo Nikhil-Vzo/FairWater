@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"; // This is the only import needed
+
 export const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-blue-100 border-b border-blue-200 shadow-sm z-50">
@@ -5,9 +7,20 @@ export const Header = () => {
         <h1 className="text-2xl font-bold text-gray-900">
           FairWater – Raipur Water Distribution Dashboard
         </h1>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-gray-700">Online</span>
+        <div className="flex items-center gap-4">
+          {/* Link back to Citizen Portal */}
+          <Link
+            to="/"
+            className="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline"
+          >
+            Citizen Portal
+          </Link>
+
+          {/* Online Status */}
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-700">Online</span>
+          </div>
         </div>
       </div>
     </header>
