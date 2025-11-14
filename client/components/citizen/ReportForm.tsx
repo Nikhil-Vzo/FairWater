@@ -20,6 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ZoneStatusResponse } from "@shared/api";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, UploadCloud } from "lucide-react";
+import { supabase } from "@/lib/supabase"; // Import Supabase client
+// import { v4 as uuidv4 } from "uuid"; // <--- REMOVED THIS LINE
 
 // Fetch zones for the dropdown
 const fetchZoneStatus = async (): Promise<ZoneStatusResponse> => {
@@ -70,9 +72,39 @@ export const ReportForm = () => {
     setError(null);
     setIsSubmitting(true);
 
+    let imageUrl: string | null = null;
+
     try {
-      // We are not uploading the image in this step,
-      // but you would use FormData for a real implementation.
+      // --- 1. UPLOAD IMAGE (IF IT EXISTS) ---
+      if (imageFile) {
+        // Create a unique file name
+        const fileExt = imageFile.name.split(".").pop();
+        // --- THIS IS THE CHANGE ---
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        // ---
+        const filePath = `${fileName}`;
+
+        // Upload to the 'report_images' bucket
+        const { error: uploadError } = await supabase.storage
+          .from("report_images")
+          .upload(filePath, imageFile);
+
+        if (uploadError) {
+          throw new Error(`Image Upload Failed: ${uploadError.message}`);
+        }
+
+        // --- 2. GET PUBLIC URL ---
+        const { data: urlData } = supabase.storage
+          .from("report_images")
+          .getPublicUrl(filePath);
+
+        if (!urlData?.publicUrl) {
+          throw new Error("Could not get image public URL.");
+        }
+        imageUrl = urlData.publicUrl;
+      }
+
+      // --- 3. SUBMIT FORM DATA (WITH IMAGE URL) TO OUR BACKEND ---
       const response = await fetch("/api/report", {
         method: "POST",
         headers: {
@@ -82,11 +114,13 @@ export const ReportForm = () => {
           issueType,
           zoneId,
           description,
+          imageUrl, // <-- ADD THE IMAGE URL
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit report.");
+        const resBody = await response.json();
+        throw new Error(resBody.error || "Failed to submit report.");
       }
 
       // Success
@@ -152,7 +186,7 @@ export const ReportForm = () => {
             {isLoading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
-              <Select onValueChange={setZoneId} value={zoneId}>
+              <Select onValueRangeChange={setZoneId} value={zoneId}>
                 <SelectTrigger id="zone">
                   <SelectValue placeholder="Select your zone..." />
                 </SelectTrigger>
@@ -225,7 +259,9 @@ export const ReportForm = () => {
             )}
           </div>
 
-          {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+          {error && (
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          )}
 
           {/* Submit Button */}
           <Button
