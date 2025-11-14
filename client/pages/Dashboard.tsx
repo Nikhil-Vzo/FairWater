@@ -44,7 +44,10 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Header />
-      <main className="flex-1 p-4 sm:p-6">
+      {/* KEY CHANGE #1: 
+        Added 'pt-20' to the main element to add padding below the fixed header.
+      */}
+      <main className="flex-1 p-4 pt-20 sm:p-6 sm:pt-20">
         {/* Error State */}
         {isError && (
           <div className="flex h-[80vh] items-center justify-center rounded-lg border border-destructive/50 bg-destructive/10 p-8">
@@ -65,9 +68,17 @@ export default function Dashboard() {
         {/* Loaded State */}
         {data && (
           <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-            {/* Left Column */}
-            <div className="lg:col-span-2">
+            {/* KEY CHANGE #2: 
+              Made this column a flex container and moved ZoneStatsCards into it.
+            */}
+            <div className="lg:col-span-2 flex flex-col gap-4 md:gap-6">
               <MapCard
+                zones={data.zones}
+                onZoneSelect={handleZoneSelect} // Pass handler
+                selectedZoneId={selectedZoneId} // Pass selected ID
+              />
+              {/* ZoneStatsCards is now here, beneath the map */}
+              <ZoneStatsCards
                 zones={data.zones}
                 onZoneSelect={handleZoneSelect} // Pass handler
                 selectedZoneId={selectedZoneId} // Pass selected ID
@@ -76,12 +87,7 @@ export default function Dashboard() {
 
             {/* Right Column */}
             <div className="flex flex-col gap-4 md:gap-6">
-              <ZoneStatsCards
-                zones={data.zones}
-                onZoneSelect={handleZoneSelect} // Pass handler
-                selectedZoneId={selectedZoneId} // Pass selected ID
-              />
-              {/* --- Add new History Chart here --- */}
+              {/* ZoneStatsCards was moved from here */}
               <HistoryChart selectedZone={selectedZone} />
               <AlertsPanel alerts={data.alerts} />
               <OptimizationPanel />
@@ -96,13 +102,15 @@ export default function Dashboard() {
 // --- Skeleton Component ---
 const DashboardSkeleton = () => (
   <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-    {/* Left Column */}
-    <div className="lg:col-span-2">
+    {/* KEY CHANGE #3: 
+      Adjusted skeleton to match the new layout.
+    */}
+    <div className="lg:col-span-2 flex flex-col gap-4 md:gap-6">
       <Skeleton className="h-[600px] w-full" />
+      <Skeleton className="h-[250px] w-full" />
     </div>
     {/* Right Column */}
     <div className="flex flex-col gap-4 md:gap-6">
-      <Skeleton className="h-[250px] w-full" />
       <Skeleton className="h-[400px] w-full" />
       <Skeleton className="h-[200px] w-full" />
       <Skeleton className="h-[300px] w-full" />

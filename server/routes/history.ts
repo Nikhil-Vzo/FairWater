@@ -17,14 +17,20 @@ export const handleGetZoneHistory: RequestHandler = async (req, res) => {
 
   const { zoneId } = result.data;
 
+  // --- KEY CHANGE: Calculate 30 minutes ago ---
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
   // 2. Fetch data from Supabase
   try {
     const { data, error } = await db
       .from("zone_history")
       .select("created_at, pressure, flow")
       .eq("zone_id", zoneId)
-      .order("created_at", { ascending: false }) // Get the most recent data
-      .limit(50); // Limit to the last 50 entries (approx 4 mins of data)
+      // --- KEY CHANGE: Add time filter to query ---
+      // Only select records created in the last 30 minutes
+      .gte("created_at", thirtyMinutesAgo)
+      // --- KEY CHANGE: Sort ascending (chronological) ---
+      .order("created_at", { ascending: true }); // Get data in chronological order
 
     if (error) {
       console.error("Supabase query error:", error.message);
@@ -32,8 +38,8 @@ export const handleGetZoneHistory: RequestHandler = async (req, res) => {
     }
 
     // 3. Format and send response
-    // Data is fetched descending, so reverse it to be chronological for charts
-    const response: ZoneHistoryResponse = data.reverse();
+    // --- KEY CHANGE: No .reverse() needed as we sorted ascending ---
+    const response: ZoneHistoryResponse = data;
     res.status(200).json(response);
   } catch (error) {
     console.error("Error in handleGetZoneHistory:", error);

@@ -224,7 +224,9 @@ export const startSimulation = () => {
   console.log("Starting real-time water data simulation...");
   // Run once immediately, then set interval
   simulateData();
-  simulationInterval = setInterval(simulateData, 5000);
+  // --- UPDATED THIS LINE ---
+  // Changed from 5000ms (5 seconds) to 30000ms (30 seconds)
+  simulationInterval = setInterval(simulateData, 30000);
 };
 
 // The API handler for GET /api/zonestatus
