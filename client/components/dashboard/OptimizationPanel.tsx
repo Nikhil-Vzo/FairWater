@@ -1,14 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { OptimizationSchedule, OptimizationResponse } from "@shared/api";
 
-interface OptimizationResult {
-  zone: string;
-  minutes: number;
-  highlighted: boolean;
-  area: string;
-}
-
-const INITIAL_RESULTS: OptimizationResult[] = [
+// This is now just the *initial* state before optimizing
+const INITIAL_RESULTS: OptimizationSchedule[] = [
   { zone: "Z1", minutes: 10, highlighted: false, area: "Civil Lines" },
   { zone: "Z2", minutes: 20, highlighted: false, area: "Pandri" },
   { zone: "Z3", minutes: 35, highlighted: true, area: "Mowa" },
@@ -21,30 +17,30 @@ const INITIAL_RESULTS: OptimizationResult[] = [
   { zone: "Z10", minutes: 30, highlighted: false, area: "New Raipur" },
 ];
 
+// API call function
+const fetchOptimization = async (): Promise<OptimizationResponse> => {
+  const res = await fetch("/api/optimize", {
+    method: "POST",
+  });
+  if (!res.ok) {
+    throw new Error("Optimization API failed");
+  }
+  return res.json();
+};
+
 export const OptimizationPanel = () => {
-  const [results, setResults] = useState<OptimizationResult[]>(INITIAL_RESULTS);
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  // Use useMutation to handle the API call, loading, and result states
+  const mutation = useMutation<OptimizationResponse, Error>({
+    mutationFn: fetchOptimization,
+  });
 
   const handleOptimize = () => {
-    setIsOptimizing(true);
-    // Simulate optimization process
-    setTimeout(() => {
-      setResults(
-        INITIAL_RESULTS.map((r, index) => {
-          // Z3 (Mowa) is always the tail-end boost zone
-          const isZ3 = r.zone === "Z3";
-          return {
-            ...r,
-            minutes: isZ3
-              ? Math.floor(Math.random() * 15) + 30
-              : Math.floor(Math.random() * 25) + 10,
-            highlighted: isZ3,
-          };
-        }),
-      );
-      setIsOptimizing(false);
-    }, 1500);
+    mutation.mutate();
   };
+
+  // The results are either the data from the API or the initial default
+  const results = mutation.data || INITIAL_RESULTS;
+  const isOptimizing = mutation.isPending;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -72,6 +68,11 @@ export const OptimizationPanel = () => {
         <h3 className="text-sm font-semibold text-gray-700 mb-4">
           Allocation Results
         </h3>
+        {mutation.isError && (
+          <p className="text-sm text-red-600 mb-4">
+            Error: {mutation.error.message}
+          </p>
+        )}
         <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
           <table className="w-full">
             <thead className="sticky top-0 bg-gray-50">

@@ -204,3 +204,9 @@ export const handleGetZoneStatus: RequestHandler = (req, res) => {
   };
   res.status(200).json(response);
 };
+
+// --- This is the function that was missing/had a typo ---
+// This lets other routes read the current simulation state
+export const getSimulationState = () => {
+  return { zones: currentZones, alerts: currentAlerts };
+};

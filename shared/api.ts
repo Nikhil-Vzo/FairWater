@@ -38,3 +38,14 @@ export interface ZoneStatusResponse {
   zones: Zone[];
   alerts: Alert[];
 }
+
+// --- NEW OPTIMIZATION TYPES ---
+
+export interface OptimizationSchedule {
+  zone: string;
+  area: string;
+  minutes: number;
+  highlighted: boolean;
+}
+
+export type OptimizationResponse = OptimizationSchedule[];
