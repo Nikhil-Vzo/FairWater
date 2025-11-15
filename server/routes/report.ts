@@ -27,7 +27,7 @@ export const handleAddReport: RequestHandler = async (req, res) => {
 
   // --- Insert into Supabase ---
   try {
-    const { data, error }_ = await db
+   const { data, error } = await db
       .from("citizen_reports")
       .insert({
         issue_type: issueType,
