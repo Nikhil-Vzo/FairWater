@@ -5,6 +5,7 @@ import { handleDemo } from "./routes/demo";
 import { handleGetZoneStatus, startSimulation } from "./routes/simulation";
 import { handleOptimizeSchedule } from "./routes/optimization";
 import { handleGetZoneHistory } from "./routes/history"; // Import new history handler
+import { handleAddReport } from "./routes/report";
 
 export function createServer() {
   const app = express();
@@ -26,6 +27,7 @@ export function createServer() {
   app.get("/api/zonestatus", handleGetZoneStatus);
   app.post("/api/optimize", handleOptimizeSchedule);
   app.get("/api/zonehistory", handleGetZoneHistory); // Add the new GET route
+  app.post("/api/report", handleAddReport);
 
   // Start the simulation when the server is created
   startSimulation();
