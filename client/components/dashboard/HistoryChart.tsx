@@ -7,12 +7,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
+  AreaChart,
 } from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import {
   Card,
   CardContent,
@@ -62,110 +59,102 @@ export function HistoryChart({ selectedZone }: HistoryChartProps) {
       }),
     })) ?? []; // Default to empty array
 
-  const chartConfig = {
-    pressure: {
-      label: "Pressure (bar)",
-      color: "#3b82f6", // blue
-    },
-    flow: {
-      label: "Flow (L/min)",
-      color: "#10b981", // green
-    },
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Zone History</CardTitle>
-        <CardDescription>
+    <div className="glass-panel rounded-2xl p-6">
+      <div className="mb-6">
+        <h3 className="text-xl font-bold tracking-tight">Historical Analytics</h3>
+        <p className="text-sm text-muted-foreground">
           {selectedZone
-            ? `Historical Pressure & Flow for ${selectedZone.name}`
-            : "Select a zone from the map or list to see its history."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="h-64 w-full">
-          {/* KEY CHANGE:
-            We render *either* the states (Loading, Error, Empty) OR
-            the chart container. This prevents the chart from trying to
-            render, unmounting, and re-rendering when the states change.
-          */}
-          {isLoading ? (
-            <div className="flex h-full w-full items-center justify-center">
-              <Skeleton className="h-full w-full" />
-            </div>
-          ) : isError ? (
-            <div className="flex h-full w-full items-center justify-center text-destructive">
-              Error loading chart data.
-            </div>
-          ) : !selectedZone ? (
-            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-              No zone selected.
-            </div>
-          ) : (
-            /*
-              The chart container is *only* rendered when we have a zone
-              and are not loading or in error.
-              The `data` prop on LineChart will be an empty array initially
-              and then update with data, but the chart components themselves
-              will not unmount.
-            */
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" fontSize={12} tickLine={false} />
-                <YAxis
-                  yAxisId="left"
-                  dataKey="pressure"
-                  stroke={chartConfig.pressure.color}
-                  fontSize={12}
-                  tickLine={false}
-                  domain={["dataMin - 0.5", "dataMax + 0.5"]}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  dataKey="flow"
-                  stroke={chartConfig.flow.color}
-                  fontSize={12}
-                  tickLine={false}
-                  domain={["dataMin - 50", "dataMax + 50"]}
-                />
-                <Tooltip
-                  content={
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          labelFormatter={(label) => `Time: ${label}`}
-                        />
-                      }
-                    />
-                  }
-                />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="pressure"
-                  stroke={chartConfig.pressure.color}
-                  strokeWidth={2}
-                  dot={false}
-                  name="Pressure (bar)"
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="flow"
-                  stroke={chartConfig.flow.color}
-                  strokeWidth={2}
-                  dot={false}
-                  name="Flow (L/min)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            ? `Real - time pressure & flow data for ${selectedZone.name}`
+            : "Select a zone to view history"}
+        </p>
+      </div>
+
+      <div className="h-[300px] w-full">
+        {isLoading ? (
+          <Skeleton className="h-full w-full rounded-xl" />
+        ) : isError ? (
+          <div className="flex h-full w-full items-center justify-center text-destructive">
+            Error loading chart data.
+          </div>
+        ) : !selectedZone ? (
+          <div className="flex h-full w-full items-center justify-center text-muted-foreground border-2 border-dashed border-white/10 rounded-xl">
+            No zone selected
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorPressure" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorFlow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+              <XAxis
+                dataKey="time"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                stroke="hsl(var(--muted-foreground))"
+              />
+              <YAxis
+                yAxisId="left"
+                dataKey="pressure"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                stroke="hsl(var(--primary))"
+                domain={["dataMin - 0.5", "dataMax + 0.5"]}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                dataKey="flow"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                stroke="hsl(var(--accent))"
+                domain={["dataMin - 50", "dataMax + 50"]}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(0,0,0,0.8)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "12px",
+                  color: "#fff",
+                }}
+              />
+              <Legend />
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="pressure"
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorPressure)"
+                name="Pressure (bar)"
+              />
+              <Area
+                yAxisId="right"
+                type="monotone"
+                dataKey="flow"
+                stroke="hsl(var(--accent))"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorFlow)"
+                name="Flow (L/min)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </div>
   );
 }

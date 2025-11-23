@@ -1,11 +1,16 @@
-import * as React from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,266 +18,297 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ZoneStatusResponse } from "@shared/api";
-import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, UploadCloud } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // Import Supabase client
-// import { v4 as uuidv4 } from "uuid"; // <--- REMOVED THIS LINE
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertReportSchema, InsertReport } from "@shared/schema";
+import { AlertTriangle, MapPin, FileText, Image, X, CheckCircle2 } from "lucide-react";
 
-// Fetch zones for the dropdown
-const fetchZoneStatus = async (): Promise<ZoneStatusResponse> => {
-  const res = await fetch("/api/zonestatus");
-  if (!res.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return res.json();
-};
+const ISSUE_TYPES = [
+  "No Water Supply",
+  "Low Pressure",
+  "Contaminated Water",
+  "Leakage",
+  "Billing Issue",
+  "Other",
+];
 
-export const ReportForm = () => {
-  const [issueType, setIssueType] = React.useState("");
-  const [zoneId, setZoneId] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [imageFile, setImageFile] = React.useState<File | null>(null);
-  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+export function ReportForm() {
+  const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const [isSubmitted, setIsSubmitted] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  // Fetch zones for the dropdown
-  const { data, isLoading } = useQuery({
-    queryKey: ["zoneStatusSimple"],
-    queryFn: fetchZoneStatus,
-    staleTime: 60000, // Cache for 1 minute
+  const form = useForm<InsertReport>({
+    resolver: zodResolver(insertReportSchema),
+    defaultValues: {
+      zoneId: "",
+      issueType: "",
+      description: "",
+      address: "",
+      imageUrl: "",
+    },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      // Create a preview
+  const uploadImage = async (file: File) => {
+    // In a real app, this would upload to a storage bucket
+    // For this demo, we'll simulate an upload and return a fake URL
+    // or use a base64 string if the backend supports it
+    return new Promise<string>((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(file);
-    }
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!issueType || !zoneId || !description) {
-      setError("Please fill out all required fields.");
-      return;
-    }
-    setError(null);
-    setIsSubmitting(true);
-
-    let imageUrl: string | null = null;
-
-    try {
-      // --- 1. UPLOAD IMAGE (IF IT EXISTS) ---
-      if (imageFile) {
-        // Create a unique file name
-        const fileExt = imageFile.name.split(".").pop();
-        // --- THIS IS THE CHANGE ---
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        // ---
-        const filePath = `${fileName}`;
-
-        // Upload to the 'report_images' bucket
-        const { error: uploadError } = await supabase.storage
-          .from("report_images")
-          .upload(filePath, imageFile);
-
-        if (uploadError) {
-          throw new Error(`Image Upload Failed: ${uploadError.message}`);
-        }
-
-        // --- 2. GET PUBLIC URL ---
-        const { data: urlData } = supabase.storage
-          .from("report_images")
-          .getPublicUrl(filePath);
-
-        if (!urlData?.publicUrl) {
-          throw new Error("Could not get image public URL.");
-        }
-        imageUrl = urlData.publicUrl;
+  const mutation = useMutation({
+    mutationFn: async (data: InsertReport) => {
+      const payload = { ...data };
+      if (selectedImage) {
+        const imageUrl = await uploadImage(selectedImage);
+        payload.imageUrl = imageUrl;
       }
 
-      // --- 3. SUBMIT FORM DATA (WITH IMAGE URL) TO OUR BACKEND ---
-      const response = await fetch("/api/report", {
+      const res = await fetch("/api/report", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          issueType,
-          zoneId,
-          description,
-          imageUrl, // <-- ADD THE IMAGE URL
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const resBody = await response.json();
-        throw new Error(resBody.error || "Failed to submit report.");
+      if (!res.ok) {
+        throw new Error("Failed to submit report");
       }
 
-      // Success
-      setIsSubmitted(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
-    } finally {
-      setIsSubmitting(false);
+      return res.json();
+    },
+    onSuccess: () => {
+      setIsSuccess(true);
+      toast({
+        title: "Report Submitted",
+        description: "We've received your report and will investigate shortly.",
+      });
+      // Reset after delay
+      setTimeout(() => {
+        setIsSuccess(false);
+        form.reset();
+        setSelectedImage(null);
+        setPreviewUrl(null);
+      }, 3000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
-  // Success Message UI
-  if (isSubmitted) {
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  };
+
+  if (isSuccess) {
     return (
-      <Card className="w-full bg-green-50 border border-green-200 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-center text-center">
-            <CheckCircle className="h-16 w-16 text-green-600 mb-4" />
-            <h2 className="text-2xl font-semibold text-green-900">
-              Report Submitted!
-            </h2>
-            <p className="text-green-800 mt-2">
-              Thank you. Your report has been submitted successfully and our team
-              has been notified.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 animate-in fade-in zoom-in duration-300">
+        <div className="h-20 w-20 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+          <CheckCircle2 className="h-10 w-10 text-green-500" />
+        </div>
+        <h3 className="text-2xl font-bold text-foreground">Report Submitted!</h3>
+        <p className="text-muted-foreground max-w-xs mx-auto">
+          Thank you for helping us maintain the water network. Your ticket ID has been generated.
+        </p>
+        <Button
+          variant="outline"
+          onClick={() => setIsSuccess(false)}
+          className="mt-6"
+        >
+          Submit Another Report
+        </Button>
+      </div>
     );
   }
 
-  // Form UI
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader>
-        <CardTitle>Submit a New Complaint</CardTitle>
-        <CardDescription>
-          Please provide details about the water issue you are facing.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Issue Type */}
-          <div className="space-y-2">
-            <Label htmlFor="issue-type">Issue Type</Label>
-            <Select onValueChange={setIssueType} value={issueType}>
-              <SelectTrigger id="issue-type">
-                <SelectValue placeholder="Select an issue..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Water Shortage">Water Shortage</SelectItem>
-                <SelectItem value="Leakage">Leakage</SelectItem>
-                <SelectItem value="Irregular Supply">
-                  Irregular Supply
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Zone Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="zone">Select Your Zone</Label>
-            {isLoading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : (
-              <Select onValueRangeChange={setZoneId} value={zoneId}>
-                <SelectTrigger id="zone">
-                  <SelectValue placeholder="Select your zone..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {data?.zones.map((zone) => (
-                    <SelectItem key={zone.id} value={zone.id}>
-                      {zone.name} - {zone.area}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Explain the shortage or leak you’re experiencing..."
-              className="min-h-[120px]"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="image-upload">Upload Photo (optional)</Label>
-            {imagePreview ? (
-              <div className="relative w-32 h-32">
-                <img
-                  src={imagePreview}
-                  alt="Upload preview"
-                  className="w-full h-full object-cover rounded-md"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute -top-2 -right-2 rounded-full h-7 w-7 p-0"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(null);
-                  }}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit((data) => mutation.mutate(data))}
+        className="space-y-6"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="issueType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2 text-foreground/80">
+                  <AlertTriangle className="w-4 h-4 text-accent" />
+                  Issue Type
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
-                  &times;
-                </Button>
-              </div>
-            ) : (
-              <label
-                htmlFor="image-upload"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              >
+                  <FormControl>
+                    <SelectTrigger className="bg-white/5 border-white/10 focus:ring-accent/50">
+                      <SelectValue placeholder="Select issue type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ISSUE_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="zoneId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2 text-foreground/80">
+                  <MapPin className="w-4 h-4 text-accent" />
+                  Zone
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white/5 border-white/10 focus:ring-accent/50">
+                      <SelectValue placeholder="Select zone" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => (
+                      <SelectItem key={i + 1} value={`z${i + 1}`}>
+                        Zone {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2 text-foreground/80">
+                <MapPin className="w-4 h-4 text-accent" />
+                Location / Address
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter specific location or landmark"
+                  className="bg-white/5 border-white/10 focus:ring-accent/50"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2 text-foreground/80">
+                <FileText className="w-4 h-4 text-accent" />
+                Description
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Describe the issue in detail..."
+                  className="min-h-[100px] bg-white/5 border-white/10 focus:ring-accent/50 resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="space-y-2">
+          <FormLabel className="flex items-center gap-2 text-foreground/80">
+            <Image className="w-4 h-4 text-accent" />
+            Photo Evidence (Optional)
+          </FormLabel>
+
+          {!previewUrl ? (
+            <div className="flex items-center justify-center w-full">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer border-white/20 bg-white/5 hover:bg-white/10 transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <UploadCloud className="w-8 h-8 mb-3 text-gray-500" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or
-                    drag and drop
+                  <Image className="w-8 h-8 mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-accent">Click to upload</span> or drag and drop
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1">SVG, PNG, JPG or GIF</p>
                 </div>
                 <input
-                  id="image-upload"
                   type="file"
-                  accept="image/*"
                   className="hidden"
-                  onChange={handleImageChange}
+                  accept="image/*"
+                  onChange={handleImageSelect}
                 />
               </label>
-            )}
-          </div>
-
-          {error && (
-            <p className="text-sm font-medium text-destructive">{error}</p>
+            </div>
+          ) : (
+            <div className="relative rounded-xl overflow-hidden border border-white/10 group">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-48 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={removeImage}
+                  className="flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Remove Photo
+                </Button>
+              </div>
+            </div>
           )}
+        </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-base py-6"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Complaint"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button
+          type="submit"
+          className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20"
+          variant="gradient"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? "Submitting Report..." : "Submit Report"}
+        </Button>
+      </form>
+    </Form>
   );
-};
+}

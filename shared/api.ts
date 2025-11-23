@@ -5,6 +5,14 @@
  */
 
 // --- EXISTING TYPES ---
+export interface Pipeline {
+  id: string;
+  name: string;
+  pressure: number; // bar
+  flow: number; // L/min
+  status: "Normal" | "Leak" | "High Pressure" | "Low Pressure";
+}
+
 export interface Zone {
   id: string;
   name: string;
@@ -15,6 +23,7 @@ export interface Zone {
   pressure: number;
   flow: number;
   color: string;
+  pipelines: Pipeline[]; // New field
 }
 
 export interface Alert {
@@ -32,12 +41,13 @@ export interface ZoneStatusResponse {
 }
 
 export interface OptimizationSchedule {
-  zoneId: string;
-  zoneName: string;
+  zone: string;
   area: string;
-  time: number;
-  status: "Balanced" | "Boost";
+  minutes: number;
+  highlighted: boolean;
 }
+
+export type OptimizationResponse = OptimizationSchedule[];
 
 // --- NEW TYPES ---
 export interface HistoryDataPoint {

@@ -3,6 +3,13 @@ import { Zone, Alert, ZoneStatusResponse } from "@shared/api";
 import { db } from "../db"; // Import the Supabase client
 
 // Base data, moved from the frontend components
+const MOCK_PIPELINES = (zoneId: string) => [
+  { id: `${zoneId}-p1`, name: "Main Supply Line", pressure: 3.2, flow: 800, status: "Normal" as const },
+  { id: `${zoneId}-p2`, name: "Distribution A", pressure: 2.8, flow: 450, status: "Normal" as const },
+  { id: `${zoneId}-p3`, name: "Distribution B", pressure: 2.9, flow: 420, status: "Normal" as const },
+  { id: `${zoneId}-p4`, name: "Tail-end Feed", pressure: 2.1, flow: 200, status: "Normal" as const },
+];
+
 const ZONES: Zone[] = [
   {
     id: "z1",
@@ -14,6 +21,7 @@ const ZONES: Zone[] = [
     pressure: 3.2,
     flow: 850,
     color: "#22c55e",
+    pipelines: MOCK_PIPELINES("z1"),
   },
   {
     id: "z2",
@@ -25,6 +33,7 @@ const ZONES: Zone[] = [
     pressure: 2.8,
     flow: 720,
     color: "#eab308",
+    pipelines: MOCK_PIPELINES("z2"),
   },
   {
     id: "z3",
@@ -36,6 +45,7 @@ const ZONES: Zone[] = [
     pressure: 1.5,
     flow: 420,
     color: "#ef4444",
+    pipelines: MOCK_PIPELINES("z3"),
   },
   {
     id: "z4",
@@ -47,6 +57,7 @@ const ZONES: Zone[] = [
     pressure: 3.0,
     flow: 800,
     color: "#06b6d4",
+    pipelines: MOCK_PIPELINES("z4"),
   },
   {
     id: "z5",
@@ -58,6 +69,7 @@ const ZONES: Zone[] = [
     pressure: 2.6,
     flow: 680,
     color: "#8b5cf6",
+    pipelines: MOCK_PIPELINES("z5"),
   },
   {
     id: "z6",
@@ -69,6 +81,7 @@ const ZONES: Zone[] = [
     pressure: 3.1,
     flow: 820,
     color: "#ec4899",
+    pipelines: MOCK_PIPELINES("z6"),
   },
   {
     id: "z7",
@@ -80,6 +93,7 @@ const ZONES: Zone[] = [
     pressure: 2.4,
     flow: 620,
     color: "#f59e0b",
+    pipelines: MOCK_PIPELINES("z7"),
   },
   {
     id: "z8",
@@ -91,6 +105,7 @@ const ZONES: Zone[] = [
     pressure: 1.8,
     flow: 480,
     color: "#10b981",
+    pipelines: MOCK_PIPELINES("z8"),
   },
   {
     id: "z9",
@@ -102,6 +117,7 @@ const ZONES: Zone[] = [
     pressure: 2.2,
     flow: 580,
     color: "#6366f1",
+    pipelines: MOCK_PIPELINES("z9"),
   },
   {
     id: "z10",
@@ -113,6 +129,7 @@ const ZONES: Zone[] = [
     pressure: 2.0,
     flow: 520,
     color: "#f87171",
+    pipelines: MOCK_PIPELINES("z10"),
   },
 ];
 
@@ -136,7 +153,7 @@ const BASE_ALERTS: Alert[] = [
 ];
 
 // In-memory state
-let currentZones = [...ZONES.map((z) => ({ ...z }))];
+let currentZones = JSON.parse(JSON.stringify(ZONES)); // Deep copy
 let currentAlerts: Alert[] = [...BASE_ALERTS];
 
 // Helper to get random fluctuation
@@ -168,10 +185,23 @@ const logZoneData = async (zones: Zone[]) => {
 const simulateData = () => {
   const newAlerts: Alert[] = [...BASE_ALERTS];
 
-  currentZones = currentZones.map((zone) => {
-    // Simulate data fluctuations
+  currentZones = currentZones.map((zone: Zone) => {
+    // Simulate data fluctuations for the zone
     const newPressure = fluctuate(zone.pressure, 0.1); // 10% fluctuation
     const newFlow = fluctuate(zone.flow, 0.15); // 15% fluctuation
+
+    // Simulate pipelines
+    const newPipelines = zone.pipelines.map(p => {
+      const pPressure = fluctuate(p.pressure, 0.1);
+      const pFlow = fluctuate(p.flow, 0.1);
+      let status = "Normal";
+
+      if (pPressure < 1.5) status = "Low Pressure";
+      if (pPressure > 4.0) status = "High Pressure";
+      if (pFlow < 100) status = "Leak";
+
+      return { ...p, pressure: pPressure, flow: Math.round(pFlow), status };
+    });
 
     // --- Dynamic Alert Generation ---
     if (zone.id === "z3" && newPressure < 1.7) {
@@ -195,12 +225,26 @@ const simulateData = () => {
         badgeColor: "bg-orange-100 text-orange-800",
       });
     }
+
+    // Check pipeline alerts
+    const leakingPipeline = newPipelines.find(p => p.status === "Leak");
+    if (leakingPipeline) {
+      newAlerts.unshift({
+        id: `leak-${zone.id}`,
+        message: `Leak detected in ${zone.name}: ${leakingPipeline.name}`,
+        type: "warning",
+        icon: "Droplet",
+        badge: "💧",
+        badgeColor: "bg-blue-100 text-blue-800"
+      });
+    }
     // --- End Alert Generation ---
 
     return {
       ...zone,
       pressure: newPressure,
       flow: Math.round(newFlow),
+      pipelines: newPipelines
     };
   });
 

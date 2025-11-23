@@ -1,20 +1,11 @@
 import { RequestHandler } from "express";
-import { z } from "zod";
 import { getSimulationState, addAlert } from "./simulation";
 import { db } from "../db"; // Import the Supabase client
-
-// Zod schema for validation
-const reportSchema = z.object({
-  issueType: z.string().min(1, "Issue type is required"),
-  zoneId: z.string().min(1, "Zone is required"),
-  description: z.string().min(1, "Description is required"),
-  // --- ADD imageUrl TO SCHEMA ---
-  imageUrl: z.string().url().nullable().optional(),
-});
+import { insertReportSchema } from "../../shared/schema";
 
 // Make the handler async
 export const handleAddReport: RequestHandler = async (req, res) => {
-  const result = reportSchema.safeParse(req.body);
+  const result = insertReportSchema.safeParse(req.body);
 
   if (!result.success) {
     return res
@@ -22,18 +13,19 @@ export const handleAddReport: RequestHandler = async (req, res) => {
       .json({ error: "Invalid input", details: result.error.errors });
   }
 
-  // --- GET imageUrl FROM VALIDATED DATA ---
-  const { issueType, zoneId, description, imageUrl } = result.data;
+  // --- GET DATA FROM VALIDATED INPUT ---
+  const { issueType, zoneId, description, address, imageUrl } = result.data;
 
   // --- Insert into Supabase ---
   try {
-   const { data, error } = await db
+    const { data, error } = await db
       .from("citizen_reports")
       .insert({
         issue_type: issueType,
         zone_id: zoneId,
         description: description,
-        image_url: imageUrl ?? null, // <-- SAVE THE IMAGE URL
+        location: address ?? null, // Map address to location column
+        image_url: imageUrl ?? null,
       })
       .select(); // .select() returns the newly inserted row
 
