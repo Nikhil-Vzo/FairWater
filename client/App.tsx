@@ -1,39 +1,32 @@
-import "./global.css";
-
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "@/pages/Index";
+import Dashboard from "@/pages/Dashboard";
+import Analysis from "@/pages/Analysis";
+import NotFound from "@/pages/NotFound";
 
-// Corrected imports:
-// We import "Index" which is our new Citizen Portal homepage.
-// We remove the line that tries to import "CitizenPortal".
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
+function Router() {
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/admin" element={<Dashboard />} />
+      <Route path="/analysis" element={<Analysis />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          {/* Route "/" now correctly points to the "Index" component */}
-          <Route path="/" element={<Index />} />
-          
-          {/* Route "/admin" correctly points to the "Dashboard" component */}
-          <Route path="/admin" element={<Dashboard />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Router />
+        <Toaster />
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

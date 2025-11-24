@@ -1,7 +1,7 @@
 import { CitizenHeader } from "@/components/citizen/CitizenHeader";
 import { InfoMap } from "@/components/citizen/InfoMap";
 import { ReportForm } from "@/components/citizen/ReportForm";
-import { Droplets } from "lucide-react";
+import { Droplets, Scan } from "lucide-react";
 
 export default function Index() {
   return (
@@ -42,6 +42,30 @@ export default function Index() {
                 Live Network Status
               </h3>
               <InfoMap />
+            </div>
+
+            {/* AI Analysis Card */}
+            <div className="glass-panel p-6 rounded-2xl mt-8 relative overflow-hidden group cursor-pointer transition-all hover:bg-white/5 border border-white/10 hover:border-accent/50">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                    <Scan className="w-5 h-5 text-cyan-400" />
+                    AI Pipeline Analysis
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-xs">
+                    Upload pipe images to detect corrosion and estimate lifespan using our advanced AI model.
+                  </p>
+                </div>
+
+                <a
+                  href="/analysis"
+                  className="px-4 py-2 rounded-lg bg-accent/20 text-accent font-medium hover:bg-accent/30 transition-colors flex items-center gap-2"
+                >
+                  Try Now
+                </a>
+              </div>
             </div>
           </div>
 

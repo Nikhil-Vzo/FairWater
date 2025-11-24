@@ -1,11 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { handleDemo } from "./routes/demo";
 import { handleGetZoneStatus, startSimulation } from "./routes/simulation";
 import { handleOptimizeSchedule } from "./routes/optimization";
-import { handleGetZoneHistory } from "./routes/history"; // Import new history handler
+import { handleGetZoneHistory } from "./routes/history";
 import { handleAddReport } from "./routes/report";
+import { handleAnalyzeImage } from "./routes/analysis";
 
 export function createServer() {
   const app = express();
@@ -26,8 +28,9 @@ export function createServer() {
   // --- NEW FAIRWATER API ---
   app.get("/api/zonestatus", handleGetZoneStatus);
   app.post("/api/optimize", handleOptimizeSchedule);
-  app.get("/api/zonehistory", handleGetZoneHistory); // Add the new GET route
+  app.get("/api/zonehistory", handleGetZoneHistory);
   app.post("/api/report", handleAddReport);
+  app.post("/api/analyze", handleAnalyzeImage);
 
   // Start the simulation when the server is created
   startSimulation();
