@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { OptimizationResponse, OptimizationSchedule } from "@shared/api";
 import { getSimulationState } from "./simulation"; // Import the state getter
 
-// This is the default schedule, moved from the frontend
+
 const BASE_SCHEDULE: OptimizationSchedule[] = [
   { zone: "Z1", highlighted: false, area: "Civil Lines", minutes: 10 },
   { zone: "Z2", highlighted: false, area: "Pandri", minutes: 20 },
@@ -16,13 +16,12 @@ const BASE_SCHEDULE: OptimizationSchedule[] = [
   { zone: "Z10", highlighted: false, area: "New Raipur", minutes: 30 },
 ];
 
-// The "AI" logic
+
 const generateSchedule = (): OptimizationResponse => {
-  // 1. Get the current, live simulation state
+ 
   const { alerts } = getSimulationState();
 
-  // 2. Check for our specific low-pressure alert
-  // (In our simulation, this is alert with id: "1")
+ 
   const needsBoost = alerts.some((alert) => alert.id === "1");
 
   let response: OptimizationResponse;
