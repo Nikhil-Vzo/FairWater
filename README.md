@@ -4,10 +4,10 @@ FairWater is a full-stack, real-time water monitoring and citizen complaint port
 
 #Team
 
-*Nikhil Yadav*
-*Ritika Jinwani*
-*Sonal Singh*
-*Naman Kumar*
+*Nikhil Yadav*<br>
+*Ritika Jinwani*<br>
+*Sonal Singh*<br>
+*Naman Kumar*<br>
 
 
 
