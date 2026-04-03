@@ -2,6 +2,12 @@
 
 FairWater is a full-stack, real-time water monitoring and citizen complaint portal designed for Raipur. It provides a simple, mobile-friendly interface for citizens to report water issues and a powerful, data-rich dashboard for administrators to monitor the city's water infrastructure in real-time.
 
+#Team
+
+Nikhil Yadav
+Ritika Jinwani
+Sonal Singh
+Naman Kumar
 
 
 
