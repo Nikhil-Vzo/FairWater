@@ -62,7 +62,7 @@ FairWater is a full-stack, real-time water monitoring and citizen complaint port
 
 1.  Clone the repository:
     ```sh
-    git clone [https://github.com/your-username/fairwater.git](https://github.com/your-username/fairwater.git)
+    git clone [https://github.com/your-username/fairwater.git](https://github.com/Nikhil-Vzo/fairwater.git)
     ```
 2.  Navigate to the project directory:
     ```sh
