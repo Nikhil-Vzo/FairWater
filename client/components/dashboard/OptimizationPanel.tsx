@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { OptimizationSchedule, OptimizationResponse } from "@shared/api";
@@ -13,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Zap, BrainCircuit } from "lucide-react";
 
-// This is now just the *initial* state before optimizing
 const INITIAL_RESULTS: OptimizationSchedule[] = [
   { zone: "Z1", minutes: 10, highlighted: false, area: "Civil Lines" },
   { zone: "Z2", minutes: 20, highlighted: false, area: "Pandri" },
@@ -23,11 +21,8 @@ const INITIAL_RESULTS: OptimizationSchedule[] = [
   { zone: "Z6", minutes: 15, highlighted: false, area: "Jai Stambh" },
   { zone: "Z7", minutes: 28, highlighted: false, area: "Lisner" },
   { zone: "Z8", minutes: 32, highlighted: false, area: "Kota" },
-  { zone: "Z9", minutes: 26, highlighted: false, area: "Risali" },
-  { zone: "Z10", minutes: 30, highlighted: false, area: "New Raipur" },
 ];
 
-// API call function
 const fetchOptimization = async (): Promise<OptimizationResponse> => {
   const res = await fetch("/api/optimize", {
     method: "POST",
@@ -51,76 +46,70 @@ export const OptimizationPanel = () => {
   const isOptimizing = mutation.isPending;
 
   return (
-    <div className="glass-panel rounded-2xl flex flex-col h-full">
-      <div className="p-5 border-b border-white/5">
+    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs flex flex-col h-full">
+      <div className="p-4 sm:p-5 border-b border-slate-100">
         <div className="flex items-center gap-2 mb-1">
-          <BrainCircuit className="h-5 w-5 text-accent" />
-          <h3 className="font-bold tracking-tight">AI Optimization</h3>
+          <BrainCircuit className="h-4 w-4 text-blue-600" />
+          <h3 className="font-bold text-sm text-slate-900 tracking-tight">AI Pumping Schedule Optimization</h3>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Generate fair pumping schedules based on real-time demand.
+        <p className="text-xs text-slate-500">
+          Compute equitable reservoir pumping duration based on pressure loss and citizen equity metrics.
         </p>
       </div>
 
-      <div className="flex-1 flex flex-col gap-4 p-4 min-h-0">
+      <div className="flex-1 flex flex-col gap-4 p-4">
         <Button
           onClick={handleOptimize}
           disabled={isOptimizing}
-          variant="gradient"
-          className="w-full h-12 text-base font-semibold shadow-lg shadow-primary/20 group relative overflow-hidden"
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
         >
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
           {isOptimizing ? (
             <>
-              <Zap className="mr-2 h-4 w-4 animate-spin" />
-              Optimizing Network...
+              <Zap className="h-4 w-4 animate-spin text-cyan-200" />
+              Calculating Optimization Grid...
             </>
           ) : (
             <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Run AI Schedule Optimization
+              <Sparkles className="h-4 w-4 text-cyan-200" />
+              Recalculate AI Pumping Schedule
             </>
           )}
         </Button>
 
         {mutation.isError && (
-          <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
+          <div className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200 font-medium">
             Error: {mutation.error.message}
           </div>
         )}
 
-        <div className="rounded-xl border border-white/5 bg-white/5 flex-1 overflow-hidden flex flex-col">
-          <div className="overflow-auto custom-scrollbar">
-            <Table>
-              <TableHeader className="bg-white/5 sticky top-0 backdrop-blur-sm z-10">
-                <TableRow className="hover:bg-transparent border-white/5">
-                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Zone</TableHead>
-                  <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Area</TableHead>
-                  <TableHead className="text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">Duration</TableHead>
+        <div className="rounded-xl border border-slate-200 overflow-hidden flex-1 max-h-[300px] overflow-y-auto">
+          <Table>
+            <TableHeader className="bg-slate-50 sticky top-0 z-10">
+              <TableRow className="border-slate-200">
+                <TableHead className="text-[11px] font-bold text-slate-600 uppercase">Zone</TableHead>
+                <TableHead className="text-[11px] font-bold text-slate-600 uppercase">Area</TableHead>
+                <TableHead className="text-right text-[11px] font-bold text-slate-600 uppercase">Pumping Duration</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {results.map((result) => (
+                <TableRow key={result.zone} className="border-slate-100 hover:bg-slate-50/60">
+                  <TableCell className="font-bold text-xs text-slate-900 py-2.5">{result.zone}</TableCell>
+                  <TableCell className="text-slate-600 text-xs py-2.5">{result.area}</TableCell>
+                  <TableCell className="text-right py-2.5">
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="font-extrabold text-xs text-blue-600">{result.minutes}m</span>
+                      {result.highlighted && (
+                        <Badge className="h-4 px-1.5 text-[10px] bg-amber-100 text-amber-800 border-amber-200">
+                          Priority
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.map((result) => (
-                  <TableRow key={result.zone} className="hover:bg-white/5 border-white/5 transition-colors">
-                    <TableCell className="font-medium py-3">{result.zone}</TableCell>
-                    <TableCell className="text-muted-foreground text-xs py-3">
-                      {result.area}
-                    </TableCell>
-                    <TableCell className="text-right py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="font-bold font-mono text-primary">{result.minutes}m</span>
-                        {result.highlighted && (
-                          <Badge variant="destructive" className="h-5 px-1.5 text-[10px] shadow-sm shadow-red-500/20">
-                            Boost
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>
