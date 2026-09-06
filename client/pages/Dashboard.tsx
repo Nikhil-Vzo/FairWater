@@ -6,13 +6,15 @@ import { ZoneStatsCards } from "@/components/dashboard/ZoneStatsCards";
 import { HistoryChart } from "@/components/dashboard/HistoryChart";
 import { ZoneDetail } from "@/components/dashboard/ZoneDetail";
 import { RiskAnalyticsPanel } from "@/components/dashboard/RiskAnalyticsPanel";
+import { TankerDispatchPanel } from "@/components/dashboard/TankerDispatchPanel";
+import { DemandForecastPanel } from "@/components/dashboard/DemandForecastPanel";
+import { IotTelemetryPanel } from "@/components/dashboard/IotTelemetryPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ZoneStatusResponse } from "@shared/api";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LayoutDashboard, Activity, Settings, Bell } from "lucide-react";
 
-// --- API Fetching Function ---
 const fetchZoneStatus = async (): Promise<ZoneStatusResponse> => {
   const res = await fetch("/api/zonestatus");
   if (!res.ok) {
@@ -22,72 +24,64 @@ const fetchZoneStatus = async (): Promise<ZoneStatusResponse> => {
 };
 
 export default function Dashboard() {
-  // --- State for selected zone ---
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
 
   const zoneStatusQuery = useQuery({
     queryKey: ["zoneStatus"],
     queryFn: fetchZoneStatus,
-    refetchInterval: 5000, // Keep polling
+    refetchInterval: 5000,
   });
 
   const { data, isLoading, isError } = zoneStatusQuery;
 
-  // --- Find the selected zone object ---
   const selectedZone =
     data?.zones.find((z) => z.id === selectedZoneId) ?? null;
 
-  // --- Handle zone selection ---
   const handleZoneSelect = (zoneId: string) => {
     setSelectedZoneId(zoneId);
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/5 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
-      </div>
-
-      {/* Sidebar (Visual Only for now) */}
-      <aside className="hidden lg:flex w-20 flex-col items-center py-8 gap-8 border-r border-white/10 bg-white/5 backdrop-blur-md z-20">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/25">
-          <LayoutDashboard className="text-white w-6 h-6" />
+    <div className="flex min-h-screen w-full bg-white text-slate-900">
+      {/* Mini Sidebar */}
+      <aside className="hidden lg:flex w-16 flex-col items-center py-6 gap-6 border-r border-slate-200 bg-slate-50">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
+          <LayoutDashboard className="w-5 h-5" />
         </div>
-        <nav className="flex flex-col gap-6 w-full items-center">
-          <button className="p-3 rounded-xl bg-white/10 text-primary transition-all hover:bg-white/20">
-            <Activity className="w-6 h-6" />
+        <nav className="flex flex-col gap-4 w-full items-center">
+          <button className="p-2.5 rounded-xl bg-blue-50 text-blue-600 font-semibold border border-blue-200">
+            <Activity className="w-5 h-5" />
           </button>
-          <button className="p-3 rounded-xl text-muted-foreground hover:text-primary hover:bg-white/10 transition-all">
-            <Bell className="w-6 h-6" />
+          <button className="p-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-all">
+            <Bell className="w-5 h-5" />
           </button>
-          <button className="p-3 rounded-xl text-muted-foreground hover:text-primary hover:bg-white/10 transition-all">
-            <Settings className="w-6 h-6" />
+          <button className="p-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-all">
+            <Settings className="w-5 h-5" />
           </button>
         </nav>
       </aside>
 
-      <main className="flex-1 p-4 lg:p-8 h-screen overflow-hidden flex flex-col relative z-10">
+      <main className="flex-1 flex flex-col min-h-screen">
         <Header />
 
-        <div className="flex-1 mt-6 overflow-hidden">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {isError && (
-            <div className="flex h-full items-center justify-center">
-              <div className="glass-panel p-8 rounded-2xl text-center space-y-4 border-destructive/20">
-                <h2 className="text-2xl font-bold text-destructive">Connection Error</h2>
-                <p className="text-muted-foreground">Failed to fetch real-time data.</p>
+            <div className="flex items-center justify-center p-12">
+              <div className="bg-red-50 border border-red-200 p-8 rounded-2xl text-center space-y-3 max-w-md">
+                <h2 className="text-xl font-bold text-red-700">Connection Error</h2>
+                <p className="text-xs text-red-600">Failed to fetch real-time zone telemetry data.</p>
               </div>
             </div>
           )}
 
           {!isError && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-              {/* Left Column: Stats & List */}
-              <div className="lg:col-span-3 flex flex-col gap-6 h-full overflow-hidden">
-                <div className="glass-panel rounded-2xl p-1 flex-1 overflow-hidden flex flex-col">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column: Zone Metrics */}
+              <div className="lg:col-span-3 space-y-6">
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                  <h2 className="text-sm font-bold text-slate-900 mb-3 px-1">Distribution Zones</h2>
                   {isLoading ? (
-                    <Skeleton className="h-full w-full rounded-xl" />
+                    <Skeleton className="h-64 w-full rounded-xl" />
                   ) : (
                     <ZoneStatsCards
                       zones={data.zones}
@@ -98,11 +92,11 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Middle Column: Map & Analytics */}
-              <div className="lg:col-span-6 flex flex-col gap-6 h-full overflow-y-auto pr-2 pb-20 scrollbar-hide">
-                <div className="glass-panel rounded-2xl p-1 min-h-[400px]">
+              {/* Middle Column: Map & AI Forecasts */}
+              <div className="lg:col-span-6 space-y-6">
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm min-h-[380px]">
                   {isLoading ? (
-                    <Skeleton className="h-full w-full rounded-xl" />
+                    <Skeleton className="h-[380px] w-full rounded-xl" />
                   ) : (
                     <MapCard
                       zones={data.zones}
@@ -113,23 +107,26 @@ export default function Dashboard() {
                 </div>
 
                 <RiskAnalyticsPanel />
+                <DemandForecastPanel />
+                <IotTelemetryPanel />
+                <TankerDispatchPanel />
 
                 {selectedZone ? (
-                  <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
                     <ZoneDetail zone={selectedZone} />
                     <HistoryChart selectedZone={selectedZone} />
                   </div>
                 ) : (
-                  <div className="glass-panel rounded-2xl p-8 text-center text-muted-foreground border-dashed">
-                    Select a zone to view detailed analytics
+                  <div className="bg-slate-50 border border-slate-200 border-dashed rounded-2xl p-6 text-center text-xs font-semibold text-slate-500">
+                    Click any zone on the map or panel above to view detailed pressure/flow history
                   </div>
                 )}
               </div>
 
-              {/* Right Column: Alerts & Control */}
-              <div className="lg:col-span-3 flex flex-col gap-6 h-full overflow-y-auto pb-20 scrollbar-hide">
+              {/* Right Column: Live Alerts & Optimization */}
+              <div className="lg:col-span-3 space-y-6">
                 {isLoading ? (
-                  <Skeleton className="h-[300px] w-full rounded-2xl" />
+                  <Skeleton className="h-[250px] w-full rounded-2xl" />
                 ) : (
                   <AlertsPanel alerts={data.alerts} />
                 )}
