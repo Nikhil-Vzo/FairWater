@@ -5,6 +5,7 @@ import { OptimizationPanel } from "@/components/dashboard/OptimizationPanel";
 import { ZoneStatsCards } from "@/components/dashboard/ZoneStatsCards";
 import { HistoryChart } from "@/components/dashboard/HistoryChart";
 import { ZoneDetail } from "@/components/dashboard/ZoneDetail";
+import { RiskAnalyticsPanel } from "@/components/dashboard/RiskAnalyticsPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ZoneStatusResponse } from "@shared/api";
 import { useQuery } from "@tanstack/react-query";
@@ -110,6 +111,8 @@ export default function Dashboard() {
                     />
                   )}
                 </div>
+
+                <RiskAnalyticsPanel />
 
                 {selectedZone ? (
                   <div className="space-y-6 animate-fade-in">
