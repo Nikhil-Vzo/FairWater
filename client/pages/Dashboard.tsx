@@ -7,6 +7,8 @@ import { HistoryChart } from "@/components/dashboard/HistoryChart";
 import { ZoneDetail } from "@/components/dashboard/ZoneDetail";
 import { RiskAnalyticsPanel } from "@/components/dashboard/RiskAnalyticsPanel";
 import { TankerDispatchPanel } from "@/components/dashboard/TankerDispatchPanel";
+import { DemandForecastPanel } from "@/components/dashboard/DemandForecastPanel";
+import { IotTelemetryPanel } from "@/components/dashboard/IotTelemetryPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ZoneStatusResponse } from "@shared/api";
 import { useQuery } from "@tanstack/react-query";
@@ -114,6 +116,10 @@ export default function Dashboard() {
                 </div>
 
                 <RiskAnalyticsPanel />
+
+                <DemandForecastPanel />
+
+                <IotTelemetryPanel />
 
                 <TankerDispatchPanel />
 

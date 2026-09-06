@@ -12,6 +12,8 @@ import { handleGetReportStatus } from "./routes/reportStatus";
 import { handleGetRiskAnalytics } from "./routes/riskAnalytics";
 import { handleFieldOrders } from "./routes/fieldOrders";
 import { handleTankerDispatch } from "./routes/tankerDispatch";
+import { demandForecastRouter } from "./routes/demandForecast";
+import { iotTelemetryRouter } from "./routes/iotTelemetry";
 
 export function createServer() {
   const app = express();
@@ -39,6 +41,8 @@ export function createServer() {
   app.get("/api/risk-analytics", handleGetRiskAnalytics);
   app.get("/api/field-orders", handleFieldOrders);
   app.get("/api/tanker-dispatch", handleTankerDispatch);
+  app.use("/api/demand-forecast", demandForecastRouter);
+  app.use("/api/iot-telemetry", iotTelemetryRouter);
 
   // Start the simulation when the server is created
   startSimulation();

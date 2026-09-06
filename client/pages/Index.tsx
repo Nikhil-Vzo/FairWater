@@ -3,6 +3,7 @@ import { InfoMap } from "@/components/citizen/InfoMap";
 import { ReportForm } from "@/components/citizen/ReportForm";
 import { ReportTracker } from "@/components/citizen/ReportTracker";
 import { EmergencySOSModal } from "@/components/citizen/EmergencySOSModal";
+import { WaterQualityCard } from "@/components/citizen/WaterQualityCard";
 import { useLanguage } from "@/context/LanguageContext";
 import { Droplets, Scan } from "lucide-react";
 
@@ -43,6 +44,9 @@ export default function Index() {
 
             {/* Emergency SOS Banner */}
             <EmergencySOSModal />
+
+            {/* Public Water Quality Index Transparency Card */}
+            <WaterQualityCard />
 
             <div className="glass-panel p-6 rounded-2xl mt-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
