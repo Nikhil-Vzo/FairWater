@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Wrench, CheckCircle2, Clock, MapPin, UserCheck, ArrowLeft, ShieldCheck, Camera, Radio } from "lucide-react";
+import { Wrench, CheckCircle2, MapPin, UserCheck, ArrowLeft, ShieldCheck, Camera, Radio } from "lucide-react";
 
 interface FieldTask {
   id: string;
@@ -61,26 +61,26 @@ export default function FieldWorker() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100">
       {/* Field Engineer Header */}
-      <header className="bg-slate-900/90 border-b border-white/10 p-4 sticky top-0 z-30 backdrop-blur-md">
+      <header className="bg-white border-b border-slate-200 p-4 sticky top-0 z-30 shadow-xs">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/" className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-colors">
+            <Link to="/" className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-cyan-400">
-                <Wrench className="w-5 h-5" />
-                Field Operations Portal
+              <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2 text-slate-900">
+                <Wrench className="w-5 h-5 text-blue-600" />
+                Field Operations Console
               </h1>
-              <p className="text-xs text-slate-400">Raipur Smart Water Engineer Mobile Console</p>
+              <p className="text-xs text-slate-500 font-medium">Raipur Smart Water Engineer Mobile Console</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-full text-emerald-400 text-xs font-medium">
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Er. Ramesh Verma (Zone 1-3 Lead)</span>
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-emerald-700 text-xs font-semibold">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Er. Ramesh Verma (Zone Lead)</span>
           </div>
         </div>
       </header>
@@ -88,8 +88,8 @@ export default function FieldWorker() {
       <main className="max-w-6xl mx-auto p-4 sm:p-6 grid lg:grid-cols-12 gap-6">
         {/* Task List - Left Column */}
         <div className="lg:col-span-5 space-y-4">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-            <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+            <Radio className="w-4 h-4 text-blue-600 animate-pulse" />
             Assigned Work Orders ({tasks.length})
           </h2>
 
@@ -100,46 +100,46 @@ export default function FieldWorker() {
                 onClick={() => setActiveTaskId(task.id)}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                   task.id === activeTaskId
-                    ? "bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-950/40"
-                    : "bg-slate-900/50 border-white/5 hover:border-white/20"
+                    ? "bg-blue-50/50 border-blue-500 shadow-sm"
+                    : "bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono font-bold text-cyan-400">{task.id}</span>
+                  <span className="text-xs font-mono font-bold text-blue-600">{task.id}</span>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       task.priority === "Critical"
-                        ? "bg-red-500/20 text-red-300 border-red-500/30"
+                        ? "bg-red-50 text-red-700 border-red-200"
                         : task.priority === "High"
-                        ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                        : "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : "bg-blue-50 text-blue-700 border-blue-200"
                     }`}
                   >
                     {task.priority} Priority
                   </span>
                 </div>
 
-                <h3 className="text-sm font-semibold text-slate-200 line-clamp-1">{task.issue}</h3>
-                <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3 h-3 text-slate-500" />
+                <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{task.issue}</h3>
+                <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   {task.location}
                 </p>
 
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5 text-xs">
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-xs">
                   <span
-                    className={`font-medium ${
+                    className={`font-semibold ${
                       task.status === "Verified"
-                        ? "text-emerald-400"
+                        ? "text-emerald-600"
                         : task.status === "Repaired"
-                        ? "text-cyan-400"
+                        ? "text-blue-600"
                         : task.status === "On Site"
-                        ? "text-amber-400"
-                        : "text-slate-400"
+                        ? "text-amber-600"
+                        : "text-slate-500"
                     }`}
                   >
                     ● Status: {task.status}
                   </span>
-                  <span className="text-[10px] text-slate-500">{task.updatedAt}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{task.updatedAt}</span>
                 </div>
               </div>
             ))}
@@ -148,26 +148,26 @@ export default function FieldWorker() {
 
         {/* Task Management Panel - Right Column */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-xl space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4">
               <div>
-                <span className="text-xs font-mono text-cyan-400 font-bold">{activeTask.id}</span>
-                <h2 className="text-xl font-bold text-slate-100">{activeTask.issue}</h2>
-                <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-xs font-mono text-blue-600 font-bold">{activeTask.id}</span>
+                <h2 className="text-xl font-bold text-slate-900">{activeTask.issue}</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   {activeTask.location} ({activeTask.zone})
                 </p>
               </div>
 
               <div className="text-right">
-                <span className="text-xs text-slate-400 block">Current Stage</span>
-                <span className="text-sm font-bold text-cyan-400">{activeTask.status}</span>
+                <span className="text-xs text-slate-400 block font-medium">Current Stage</span>
+                <span className="text-sm font-bold text-blue-600">{activeTask.status}</span>
               </div>
             </div>
 
             {/* Workflow Progress Tracker */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-400">Update Field Resolution Progress</label>
+              <label className="text-xs font-bold text-slate-700">Update Field Resolution Progress</label>
               <div className="grid grid-cols-4 gap-2">
                 {(["Assigned", "On Site", "Repaired", "Verified"] as const).map((stage) => {
                   const isCurrent = activeTask.status === stage;
@@ -177,8 +177,8 @@ export default function FieldWorker() {
                       onClick={() => handleUpdateStatus(stage)}
                       className={`py-2 px-1 rounded-xl text-xs font-semibold border transition-all text-center ${
                         isCurrent
-                          ? "bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-md shadow-cyan-950/50"
-                          : "bg-slate-800/80 text-slate-300 border-white/10 hover:border-cyan-500/50"
+                          ? "bg-blue-600 text-white border-blue-600 font-bold shadow-xs"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
                       {stage}
@@ -189,19 +189,19 @@ export default function FieldWorker() {
             </div>
 
             {/* Photo & Sensor Verification */}
-            <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-                <Camera className="w-4 h-4 text-cyan-400" />
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-blue-600" />
                 Proof of Repair Photo & AI Verification
               </h3>
 
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <button
                   onClick={() => setImageUploaded(true)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-medium border flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
                     imageUploaded
-                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-white hover:bg-slate-100 text-slate-800 border-slate-300 shadow-xs"
                   }`}
                 >
                   <Camera className="w-4 h-4" />
@@ -209,8 +209,8 @@ export default function FieldWorker() {
                 </button>
 
                 {imageUploaded && (
-                  <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/30 px-3 py-2 rounded-lg border border-emerald-500/20">
-                    <ShieldCheck className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span>AI Model Verified: Seal Intact (98.4% Confidence)</span>
                   </div>
                 )}
@@ -219,19 +219,19 @@ export default function FieldWorker() {
 
             {/* Engineer Notes */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-400">Field Logs & Repair Observations</label>
+              <label className="text-xs font-bold text-slate-700">Field Logs & Repair Observations</label>
               <textarea
                 rows={3}
                 placeholder="Log valve settings, pressure checks, or replacement part serial numbers..."
                 value={repairNotes}
                 onChange={(e) => setRepairNotes(e.target.value)}
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-cyan-500"
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <button
               onClick={() => handleUpdateStatus("Verified")}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-950/50 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-xs flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="w-5 h-5" />
               Finalize & Submit Work Order
