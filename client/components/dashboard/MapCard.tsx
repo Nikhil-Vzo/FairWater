@@ -18,14 +18,18 @@ export function MapCard({
     <Card className="h-[600px] overflow-hidden">
       <CardContent className="h-full p-0">
         <MapContainer
-          center={[21.245, 81.635]}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-          scrollWheelZoom={false}
+          {...({
+            center: [21.245, 81.635],
+            zoom: 13,
+            style: { height: "100%", width: "100%" },
+            scrollWheelZoom: false,
+          } as any)}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            {...({
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            } as any)}
           />
 
           {zones.map((zone) => {
@@ -33,20 +37,21 @@ export function MapCard({
             return (
               <CircleMarker
                 key={zone.id}
-                center={[zone.lat, zone.lng]}
-                radius={isSelected ? 12 : 8} // Make selected marker bigger
-                pathOptions={{
-                  color: zone.color,
-                  fillColor: zone.color,
-                  fillOpacity: isSelected ? 0.8 : 0.5,
-                  weight: isSelected ? 4 : 2, // Make selected border thicker
-                }}
-                // --- Add click event handler ---
-                eventHandlers={{
-                  click: () => {
-                    onZoneSelect(zone.id);
+                {...({
+                  center: [zone.lat, zone.lng],
+                  radius: isSelected ? 12 : 8,
+                  pathOptions: {
+                    color: zone.color,
+                    fillColor: zone.color,
+                    fillOpacity: isSelected ? 0.8 : 0.5,
+                    weight: isSelected ? 4 : 2,
                   },
-                }}
+                  eventHandlers: {
+                    click: () => {
+                      onZoneSelect(zone.id);
+                    },
+                  },
+                } as any)}
               >
                 <Tooltip>
                   <div>

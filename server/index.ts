@@ -8,6 +8,8 @@ import { handleOptimizeSchedule } from "./routes/optimization";
 import { handleGetZoneHistory } from "./routes/history";
 import { handleAddReport } from "./routes/report";
 import { handleAnalyzeImage } from "./routes/analysis";
+import { handleGetReportStatus } from "./routes/reportStatus";
+import { handleGetRiskAnalytics } from "./routes/riskAnalytics";
 
 export function createServer() {
   const app = express();
@@ -31,6 +33,8 @@ export function createServer() {
   app.get("/api/zonehistory", handleGetZoneHistory);
   app.post("/api/report", handleAddReport);
   app.post("/api/analyze", handleAnalyzeImage);
+  app.get("/api/report/status/:ticketId", handleGetReportStatus);
+  app.get("/api/risk-analytics", handleGetRiskAnalytics);
 
   // Start the simulation when the server is created
   startSimulation();

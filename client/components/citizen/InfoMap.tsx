@@ -12,18 +12,22 @@ export const InfoMap = () => {
     <div className="mt-8 text-center">
       <div className="w-full h-64 rounded-lg overflow-hidden shadow-md border">
         <MapContainer
-          center={[21.245, 81.635]}
-          zoom={13}
-          style={{ width: "100%", height: "100%" }}
-          zoomControl={false}
-          scrollWheelZoom={false}
-          dragging={false}
-          touchZoom={false}
-          doubleClickZoom={false}
+          {...({
+            center: [21.245, 81.635],
+            zoom: 13,
+            style: { width: "100%", height: "100%" },
+            zoomControl: false,
+            scrollWheelZoom: false,
+            dragging: false,
+            touchZoom: false,
+            doubleClickZoom: false,
+          } as any)}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            {...({
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            } as any)}
           />
           {zonePins.map((zone) => (
             <Marker key={zone.id} position={zone.position}>

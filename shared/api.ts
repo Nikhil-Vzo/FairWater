@@ -57,3 +57,7 @@ export interface HistoryDataPoint {
 }
 
 export type ZoneHistoryResponse = HistoryDataPoint[];
+
+export interface DemoResponse {
+  message: string;
+}

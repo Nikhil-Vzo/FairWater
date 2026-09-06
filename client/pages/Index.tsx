@@ -1,6 +1,7 @@
 import { CitizenHeader } from "@/components/citizen/CitizenHeader";
 import { InfoMap } from "@/components/citizen/InfoMap";
 import { ReportForm } from "@/components/citizen/ReportForm";
+import { ReportTracker } from "@/components/citizen/ReportTracker";
 import { Droplets, Scan } from "lucide-react";
 
 export default function Index() {
@@ -70,13 +71,16 @@ export default function Index() {
           </div>
 
           {/* Form Section - Right Side */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative space-y-6">
             {/* Decorative blob behind form */}
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl transform rotate-3 scale-105 -z-10 rounded-3xl" />
 
-            <div className="glass-panel rounded-3xl p-1 shadow-2xl">
+            <div className="glass-panel rounded-3xl p-6 shadow-2xl">
               <ReportForm />
             </div>
+
+            {/* Tracker Component */}
+            <ReportTracker />
           </div>
         </div>
       </main>
